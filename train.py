@@ -7,7 +7,6 @@ from tensorflow.keras import layers, models, optimizers
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc
-import matplotlib.pyplot as plt
 
 IMG_SIZE = (224,224)
 DEFAULT_MODEL_DIR = 'saved_models'
@@ -145,7 +144,8 @@ def train(data_dir, epochs=20, batch_size=16, model_dir=DEFAULT_MODEL_DIR):
     print(f"Latest model saved to: {latest_model_file}")
     print(f"Training plot saved to: {plot_path}")
 
-    return model, history
+    return model, val_gen, model_dir, history
+
 
 if __name__=='__main__':
     import argparse
@@ -154,5 +154,6 @@ if __name__=='__main__':
     parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--batch_size', type=int, default=16)
     args = parser.parse_args()
-    train(args.data_dir, epochs=args.epochs, batch_size=args.batch_size)
+
+    model, val_gen, model_dir, history = train(args.data_dir, epochs=args.epochs, batch_size=args.batch_size)
     evaluate_model(model, val_gen, save_dir=model_dir)
