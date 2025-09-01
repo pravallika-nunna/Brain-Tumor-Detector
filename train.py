@@ -6,9 +6,53 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras import layers, models, optimizers
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
+from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc
+import matplotlib.pyplot as plt
 
 IMG_SIZE = (224,224)
 DEFAULT_MODEL_DIR = 'saved_models'
+
+def evaluate_model(model, val_gen, save_dir="saved_models"):
+    # Evaluate using Keras
+    loss, acc = model.evaluate(val_gen, verbose=0)
+    print("\n=== Evaluation on Validation Set ===")
+    print(f"Validation Accuracy (Keras): {acc:.4f}")
+    print(f"Validation Loss (Keras): {loss:.4f}")
+
+    # Predictions
+    y_true = val_gen.classes
+    y_pred_probs = model.predict(val_gen, verbose=0).ravel()
+    y_pred = (y_pred_probs > 0.5).astype(int)
+
+    # Classification report
+    print("\nClassification Report:")
+    print(classification_report(y_true, y_pred, target_names=list(val_gen.class_indices.keys())))
+
+    # Confusion matrix
+    print("Confusion Matrix:")
+    print(confusion_matrix(y_true, y_pred))
+
+    # ROC curve & AUC
+    fpr, tpr, _ = roc_curve(y_true, y_pred_probs)
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure(figsize=(6,6))
+    plt.plot(fpr, tpr, color='blue', lw=2, label=f'ROC Curve (AUC = {roc_auc:.4f})')
+    plt.plot([0,1], [0,1], color='gray', linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("ROC Curve")
+    plt.legend(loc="lower right")
+
+    os.makedirs(save_dir, exist_ok=True)
+    roc_path = os.path.join(save_dir, "roc_curve.png")
+    plt.savefig(roc_path)
+    plt.close()
+
+    print(f"ROC curve saved to: {roc_path}")
+
 
 def build_model(input_shape=(224,224,3)):
     base = MobileNetV2(include_top=False, weights='imagenet', input_shape=input_shape)
@@ -111,3 +155,4 @@ if __name__=='__main__':
     parser.add_argument('--batch_size', type=int, default=16)
     args = parser.parse_args()
     train(args.data_dir, epochs=args.epochs, batch_size=args.batch_size)
+    evaluate_model(model, val_gen, save_dir=model_dir)

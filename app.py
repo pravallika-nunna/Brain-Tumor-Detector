@@ -10,7 +10,7 @@ def load_model_or_raise(model_path=None):
     if model_path and os.path.exists(model_path):
         return tf.keras.models.load_model(model_path)
     #latest = os.path.join(DEFAULT_MODEL_DIR,'brain_tumor_mobilenetv2_latest.h5')
-    latest = os.path.join(DEFAULT_MODEL_DIR,'brain_tumor_mobilenetv2_20250829_110520.h5')
+    latest = os.path.join(DEFAULT_MODEL_DIR,'brain_tumor_mobilenetv2_20250901_160237.h5')
     if os.path.exists(latest):
         return tf.keras.models.load_model(latest)
     raise FileNotFoundError('No model found. Train first or provide --model_path')
@@ -25,7 +25,7 @@ def prepare_image(img: Image.Image, target_size=IMG_SIZE):
 
 def run_app(model_path=None):
     import streamlit as st
-    st.set_page_config(page_title='Brain Tumor Detector', layout='centered')
+    st.set_page_config(page_title='TumorVision', layout='centered')
     st.title('Brain Tumor Detector')
     st.write('Upload MRI/brain image to detect tumor')
 
